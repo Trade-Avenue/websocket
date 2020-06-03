@@ -139,7 +139,7 @@ defmodule Websocket do
       def handle_info({:DOWN, ref, _, _, reason}, %{monitor: ref} = conn) do
         %{stream: stream} = conn
 
-        log_warn("Connection to socket #{stream} lost with reason #{inspect(reason)}.")
+        log_warn("Connection to socket #{inspect(stream)} lost with reason #{inspect(reason)}.")
 
         {:stop, reason, conn}
       end
