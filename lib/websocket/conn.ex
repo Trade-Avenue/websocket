@@ -45,7 +45,7 @@ defmodule Websocket.Conn do
 
     field :stream, reference
 
-    field :state, term
+    field :state, term, default: %{}
   end
 
   def new!(args), do: struct!(__MODULE__, args)

@@ -3,6 +3,10 @@ defmodule Websocket do
 
   @type state :: term
 
+  @type protocols :: [binary]
+
+  @type headers :: [{binary, binary}]
+
   @type frame ::
           :ping
           | :pong
@@ -10,8 +14,11 @@ defmodule Websocket do
           | {:ping | :pong | :text | :binary | :close, binary}
           | {:close, non_neg_integer, binary}
 
-  @doc "Creates a new state for the websocket connection."
-  @callback new_state(Conn.t(), protocols :: [binary], headers :: [{binary, binary}]) :: state
+  @doc """
+  Called when a websocket connection is stablished,
+  returns a new state for the websocket connection.
+  """
+  @callback handle_connected(Conn.t(), protocols, headers, state) :: state
 
   @doc """
   Processes messages sent from the client application to the
@@ -123,7 +130,9 @@ defmodule Websocket do
       def handle_info({:gun_upgrade, _client, _stream, protocols, headers}, conn) do
         log_debug("Connection upgraded successfully.")
 
-        state = new_state(conn, protocols, headers)
+        %{state: state} = conn
+
+        state = conn |> Map.put(:state, nil) |> handle_connected(protocols, headers, state)
 
         {:noreply, Conn.update_state(conn, state)}
       end
@@ -166,7 +175,7 @@ defmodule Websocket do
       end
 
       @impl Websocket
-      def new_state(_, _, _), do: %{}
+      def handle_connected(_, _, _, _), do: %{}
 
       @impl Websocket
       def handle_push(message, state) when is_binary(message),
@@ -178,7 +187,7 @@ defmodule Websocket do
       @impl Websocket
       def handle_receive(frame, state), do: {:ok, state}
 
-      defoverridable new_state: 3, handle_push: 2, handle_receive: 2
+      defoverridable handle_connected: 4, handle_push: 2, handle_receive: 2
 
       case debug do
         true -> defp log_debug(message), do: Logger.debug(message)
