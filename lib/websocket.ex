@@ -64,7 +64,7 @@ defmodule Websocket do
 
         {:ok, pid} = :gun.open(host, port, opts)
 
-        {:ok, :http} = :gun.await_up(pid)
+        {:ok, :http} = :gun.await_up(pid, :timer.seconds(30))
 
         {:noreply, Conn.add_pid(conn, pid), {:continue, :upgrade}}
       end
