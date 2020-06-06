@@ -168,7 +168,7 @@ defmodule Websocket do
 
         %{pid: pid, monitor: monitor, stream: stream} = conn
 
-        Process.demonitor(monitor)
+        if not is_nil(monitor), do: Process.demonitor(monitor)
 
         :gun.flush(stream)
         :gun.close(pid)
