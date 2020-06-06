@@ -14,6 +14,8 @@ defmodule Websocket do
           | {:ping | :pong | :text | :binary | :close, binary}
           | {:close, non_neg_integer, binary}
 
+  @type message_return({:push | :close, frame, state} | {:ok, state})
+
   @doc """
   Called when a websocket connection is stablished,
   returns a new state for the websocket connection.
@@ -24,13 +26,13 @@ defmodule Websocket do
   Processes messages sent from the client application to the
   websocket server and optionally tracks state for the connection.
   """
-  @callback handle_push(message :: term, state) :: {:push | :close, frame, state} | {:ok, state}
+  @callback handle_push(message :: term, state) :: message_return
 
   @doc """
   Processes messages received by the client application from the
   remote websocket server.
   """
-  @callback handle_receive(frame, state) :: {:push | :close, frame, state} | {:ok, state}
+  @callback handle_receive(frame, state) :: message_return
 
   @spec start_link(module, any, GenServer.options()) :: GenServer.on_start()
   defdelegate start_link(module, args, options \\ []), to: GenServer
