@@ -14,7 +14,7 @@ defmodule Websocket do
           | {:ping | :pong | :text | :binary | :close, binary}
           | {:close, non_neg_integer, binary}
 
-  @type message_return({:push | :close, frame, state} | {:ok, state})
+  @type message_return :: {:push | :close, frame, state} | {:ok, state}
 
   @doc """
   Called when a websocket connection is stablished,
