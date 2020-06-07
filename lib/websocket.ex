@@ -71,7 +71,7 @@ defmodule Websocket do
 
       @impl GenServer
       def handle_continue(:upgrade, conn) do
-        %{path: path, headers: headers, pid: pid} = conn
+        %{path: path, headers: headers, pid: pid, state: state} = conn
 
         log_debug("Connection succeeded, upgrading websocket to path #{path}.")
 
@@ -81,7 +81,23 @@ defmodule Websocket do
             headers -> :gun.ws_upgrade(pid, path, headers)
           end
 
-        {:noreply, Conn.add_stream(conn, stream)}
+        receive do
+          {:gun_upgrade, _, stream, protocols, headers} ->
+            log_debug("Connection upgraded successfully.")
+
+            state = conn |> Map.put(:state, nil) |> handle_connected(protocols, headers, state)
+
+            conn = conn |> Conn.add_stream(stream) |> Conn.update_state(state)
+
+            {:noreply, conn}
+
+          {:gun_error, _, {:badstate, reason}} ->
+            log_warn("Connection upgrade failed with reason #{inspect(reason)}.")
+
+            {:stop, reason, conn}
+        after
+          30_000 -> {:stop, :upgrade_timeout, conn}
+        end
       end
 
       @impl GenServer
@@ -126,24 +142,6 @@ defmodule Websocket do
 
             {:stop, :close, Conn.update_state(conn, state)}
         end
-      end
-
-      @impl GenServer
-      def handle_info({:gun_upgrade, _client, _stream, protocols, headers}, conn) do
-        log_debug("Connection upgraded successfully.")
-
-        %{state: state} = conn
-
-        state = conn |> Map.put(:state, nil) |> handle_connected(protocols, headers, state)
-
-        {:noreply, Conn.update_state(conn, state)}
-      end
-
-      @impl GenServer
-      def handle_info({:gun_error, _client, {:badstate, reason}}, conn) do
-        log_warn("Connection upgrade failed with reason #{inspect(reason)}.")
-
-        {:stop, reason, conn}
       end
 
       @impl GenServer
