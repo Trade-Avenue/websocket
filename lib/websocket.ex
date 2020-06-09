@@ -154,7 +154,7 @@ defmodule Websocket do
       end
 
       @impl GenServer
-      def handle_info({:EXIT, _, reason}, conn) do
+      def handle_info({:EXIT, pid, reason}, %{pid: pid} = conn) do
         log_warn("Got EXIT message with reason #{inspect(reason)}.")
 
         {:stop, reason, conn}
