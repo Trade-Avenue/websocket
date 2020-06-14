@@ -69,7 +69,6 @@ defmodule Websocket do
         {:noreply, Conn.add_pid(conn, pid), {:continue, :upgrade}}
       end
 
-      @impl GenServer
       def handle_continue(:upgrade, conn) do
         %{path: path, headers: headers, pid: pid, state: state} = conn
 
@@ -144,7 +143,6 @@ defmodule Websocket do
         end
       end
 
-      @impl GenServer
       def handle_info({:DOWN, ref, _, _, reason}, %{monitor: ref} = conn) do
         %{stream: stream} = conn
 
@@ -153,7 +151,6 @@ defmodule Websocket do
         {:stop, reason, conn}
       end
 
-      @impl GenServer
       def handle_info({:EXIT, pid, reason}, %{pid: pid} = conn) do
         log_warn("Got EXIT message with reason #{inspect(reason)}.")
 
@@ -181,7 +178,6 @@ defmodule Websocket do
       def handle_push(message, state) when is_binary(message),
         do: {:push, {:text, message}, state}
 
-      @impl Websocket
       def handle_push({:close, reason}, state), do: {:close, {:close, reason}, state}
 
       @impl Websocket
