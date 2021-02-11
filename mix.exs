@@ -15,9 +15,9 @@ defmodule Websocket.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 1.2.3", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
-      {:gun, github: "ninenines/gun", tag: "2.0.0-pre.2"},
+      {:gun, "~> 2.0.0-rc.1"},
       {:typed_struct, "~> 0.2"}
     ]
   end
