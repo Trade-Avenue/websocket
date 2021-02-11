@@ -104,7 +104,7 @@ defmodule Websocket do
 
       @impl GenServer
       def handle_call({:push, message}, _from, conn) do
-        %{pid: pid, state: state} = conn
+        %{pid: pid, stream: stream, state: state} = conn
 
         log_debug("Calling push with message #{inspect(message)}.")
 
@@ -112,7 +112,7 @@ defmodule Websocket do
           {:push, frame, state} ->
             conn = Conn.update_state(conn, state)
 
-            {:reply, :gun.ws_send(pid, frame), conn}
+            {:reply, :gun.ws_send(pid, stream, frame), conn}
 
           {:ok, state} ->
             {:reply, :ok, Conn.update_state(conn, state)}
@@ -120,7 +120,7 @@ defmodule Websocket do
           {:close, frame, state} ->
             conn = Conn.update_state(conn, state)
 
-            {:stop, :close, :gun.ws_send(pid, frame), conn}
+            {:stop, :close, :gun.ws_send(pid, stream, frame), conn}
         end
       end
 
@@ -128,11 +128,11 @@ defmodule Websocket do
       def handle_info({:gun_ws, _, stream, frame}, conn) do
         log_debug("Received frame #{inspect(frame)} from socket #{inspect(stream)}.")
 
-        %{pid: pid, state: state} = conn
+        %{pid: pid, stream: stream, state: state} = conn
 
         case handle_receive(frame, state) do
           {:push, frame, state} ->
-            :ok = :gun.ws_send(pid, frame)
+            :ok = :gun.ws_send(pid, stream, frame)
 
             {:noreply, Conn.update_state(conn, state)}
 
@@ -140,7 +140,7 @@ defmodule Websocket do
             {:noreply, Conn.update_state(conn, state)}
 
           {:close, frame, state} ->
-            :ok = :gun.ws_send(pid, frame)
+            :ok = :gun.ws_send(pid, stream, frame)
 
             {:stop, :close, Conn.update_state(conn, state)}
         end
