@@ -66,6 +66,7 @@ defmodule Websocket do
 
         case :gun.await_up(pid, :timer.seconds(30)) do
           {:ok, :http} -> :ok
+          {:ok, :http2} -> :ok
           {:error, reason} -> exit(reason)
         end
 
