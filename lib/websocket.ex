@@ -20,7 +20,8 @@ defmodule Websocket do
   Called when a websocket connection is stablished,
   returns a new state for the websocket connection.
   """
-  @callback handle_connected(Conn.t(), protocols, headers, state) :: state
+  @callback handle_connected(Conn.t(), protocols, headers, state) ::
+              state | {state, {:push, term}}
 
   @doc """
   Processes messages sent from the client application to the
@@ -87,11 +88,17 @@ defmodule Websocket do
           {:gun_upgrade, _, stream, protocols, headers} ->
             log_debug("Connection upgraded successfully.")
 
-            state = conn |> Map.put(:state, nil) |> handle_connected(protocols, headers, state)
+            case conn |> Map.put(:state, nil) |> handle_connected(protocols, headers, state) do
+              {state, {:push, push_message}} ->
+                conn = conn |> Conn.add_stream(stream) |> Conn.update_state(state)
 
-            conn = conn |> Conn.add_stream(stream) |> Conn.update_state(state)
+                {:noreply, conn, {:continue, {:push, push_message}}}
 
-            {:noreply, conn}
+              state ->
+                conn = conn |> Conn.add_stream(stream) |> Conn.update_state(state)
+
+                {:noreply, conn}
+            end
 
           {:gun_error, _, {:badstate, reason}} ->
             log_warn("Connection upgrade failed with reason #{inspect(reason)}.")
@@ -99,6 +106,13 @@ defmodule Websocket do
             {:stop, reason, conn}
         after
           30_000 -> {:stop, :upgrade_timeout, conn}
+        end
+      end
+
+      def handle_continue({:push, message}, conn) do
+        case handle_call({:push, message}, self(), conn) do
+          {:reply, :ok, conn} -> {:noreply, conn}
+          {:stop, :close, _, conn} -> {:stop, :close, conn}
         end
       end
 
