@@ -156,7 +156,7 @@ defmodule Websocket do
           {:close, frame, state} ->
             :ok = :gun.ws_send(pid, stream, frame)
 
-            {:stop, :close, Conn.update_state(conn, state)}
+            {:stop, {:shutdown, :close}, Conn.update_state(conn, state)}
         end
       end
 
