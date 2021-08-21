@@ -165,7 +165,7 @@ defmodule Websocket do
 
         log_warn("Connection to socket #{inspect(stream)} lost with reason #{inspect(reason)}.")
 
-        {:stop, reason, conn}
+        {:stop, {:shutdown, reason}, conn}
       end
 
       def handle_info({:EXIT, pid, reason}, %{pid: pid} = conn) do
