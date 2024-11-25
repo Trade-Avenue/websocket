@@ -15,10 +15,10 @@ defmodule Websocket.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
-      {:gun, "~> 2.0.0-rc.1"},
-      {:typed_struct, "~> 0.2"}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
+      {:gun, "~> 2.1.0"},
+      {:typedstruct, "~> 0.5"}
     ]
   end
 end
