@@ -213,7 +213,7 @@ defmodule Websocket do
       end
 
       case debug do
-        true -> defp log_warn(message), do: Logger.warn(message)
+        true -> defp log_warn(message), do: Logger.warning(message)
         false -> defp log_warn(_), do: :noop
       end
     end
