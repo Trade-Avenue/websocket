@@ -104,6 +104,11 @@ defmodule Websocket do
             log_warn("Connection upgrade failed with reason #{inspect(reason)}.")
 
             {:stop, reason, conn}
+
+          {:gun_response, _, _, :fin, status_code, _} ->
+            log_warn("Connection upgrade failed with status code #{inspect(status_code)}.")
+
+            {:stop, status_code, conn}
         after
           30_000 -> {:stop, :upgrade_timeout, conn}
         end
